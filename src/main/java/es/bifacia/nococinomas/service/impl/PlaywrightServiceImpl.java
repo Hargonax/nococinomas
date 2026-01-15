@@ -1,8 +1,6 @@
 package es.bifacia.nococinomas.service.impl;
 
-import ch.qos.logback.core.util.StringUtil;
 import com.microsoft.playwright.*;
-import com.microsoft.playwright.options.Proxy;
 import es.bifacia.nococinomas.model.Order;
 import es.bifacia.nococinomas.service.PlaywrightService;
 import es.bifacia.nococinomas.service.PropertiesService;
@@ -10,7 +8,6 @@ import io.micrometer.common.util.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -63,11 +60,10 @@ public class PlaywrightServiceImpl implements PlaywrightService {
     public void launchFullOrder(final List<Order> orders) {
         try {
             startPlaywright();
-//            login();
-            orders.forEach(order -> {
-                addMealOrder(order);
-            });
+            login();
+            orders.forEach(this::addMealOrder);
             logger.info("Finish adding orders. Please, proceed to end the order.");
+            accessShoppingCart();
             final int waitTime = propertiesService.getIntegerProperty("wait.in.millis");
             Thread.sleep(waitTime);
         } catch (Exception ex) {
@@ -78,9 +74,11 @@ public class PlaywrightServiceImpl implements PlaywrightService {
     private void login() {
         final String user = propertiesService.getProperty("user.mail");
         final String password = propertiesService.getProperty("password");
-        webPage.locator("input#field-email").fill(user);
-        webPage.locator("input#field-password").fill(password);
-        webPage.locator("#submit-login").click();
+        if (StringUtils.isNotEmpty(user) && StringUtils.isNotEmpty(password)) {
+            webPage.locator("input#field-email").fill(user);
+            webPage.locator("input#field-password").fill(password);
+            webPage.locator("#submit-login").click();
+        }
     }
 
     private void closeCookiesModal() {
@@ -116,6 +114,11 @@ public class PlaywrightServiceImpl implements PlaywrightService {
         } else {
             logger.error("Meal " + mealName + " not found.");
         }
+    }
+
+    private void accessShoppingCart() {
+        logger.info("Accessing shopping cart");
+        webPage.locator("#_desktop_cart div.cart-preview a").click();
     }
 
 }

@@ -13,7 +13,7 @@ import java.util.Properties;
 
 @Service
 public class PropertiesServiceImp implements PropertiesService {
-    private static final String PROPERTIES_FILE = "./test.properties";
+    private static final String PROPERTIES_FILE = "./application.properties";
     private final Logger logger = LogManager.getLogger(PropertiesServiceImp.class);
     private Map<String, String> properties = new HashMap<>();
 
